@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace WebClient_Lib
 {
-    interface IHttpClient_Simple
+    /// <summary>
+    /// 簡易Http傳輸物件(需要.Net 4.5)
+    /// </summary>
+    public interface IHttpClient_Simple
     {
         /// <summary>
         /// 使用(Post)傳出Request資料(string),並非同步方式等候Response資料(string)

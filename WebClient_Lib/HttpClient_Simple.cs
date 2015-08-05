@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Diagnostics;
 using System.Threading;
+using System.IO;
 
 namespace WebClient_Lib
 {
@@ -17,6 +18,12 @@ namespace WebClient_Lib
         private Uri _uri;
 
         #region Constructor
+        /// <summary>
+        /// 設定等待要求逾時(ms)和指定目的地的Uri字串
+        /// 沒設定後面要自己加入Uri
+        /// </summary>
+        /// <param name="milliseconds">等待要求逾時(ms)</param>
+        /// <param name="uriString">指定目的地的Uri字串</param>
         public HttpClient_Simple(double milliseconds,string uriString = null)
         {
             this._uri = (uriString == null) ? null : new Uri(uriString, UriKind.Absolute);
@@ -108,14 +115,17 @@ namespace WebClient_Lib
             //確認成功
             response.EnsureSuccessStatusCode();
             //從Response讀取Http Body (byte array)
-            Task<string> taskResponseString = response.Content.ReadAsStringAsync();
-            
-            if (!taskResponseString.Wait(1000))
+            Task<Stream> taskResponseStream = response.Content.ReadAsStreamAsync();
+
+            if (!taskResponseStream.Wait(1000))
             {
                 throw new TimeoutException("讀取Response資料逾時");
             }
             //讀取完成
-            result = taskResponseString.Result;
+            byte[] buffer = new byte[0x1000];
+            int readCnt = taskResponseStream.Result.Read(buffer, 0, buffer.Length);
+            Array.Resize(ref buffer, readCnt);
+            result = BitConverter.ToString(buffer).Replace("-", "");
             return result;
         }
 

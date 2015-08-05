@@ -22,9 +22,16 @@ namespace WebClient_Lib
             IHttpClient_Simple test = new HttpClient_Simple(3000, uri);
             string data = "32" + "00" + "04873ABA8D2C80" + "4EF61041ABE8B0EF8B32A627B19D83AA";
             byte[] dataBytes = Encoding.ASCII.GetBytes(data);
+            //*****************************************************
+            //回傳Byte Array
             byte[] result = test.Post(dataBytes);
             Console.WriteLine("回傳資料(hex):" + BitConverter.ToString(result).Replace("-", ""));
-            Console.WriteLine("回傳資料(Encoding):" + Encoding.ASCII.GetString(result));
+            //Console.WriteLine("回傳資料(Encoding):" + Encoding.ASCII.GetString(result));
+            //*****************************************************
+            //回傳傳String
+            string result2 = test.Post(data);
+
+            Console.WriteLine("回傳資料2(hex):" + result2);
             Console.ReadKey();
         }
         //測試異常 => 回傳 ha ha
