@@ -101,11 +101,11 @@ namespace WebClient_Lib
             //Post出要求
             Task<HttpResponseMessage> taskResponse = this._client.PostAsync(uri, httpContent);
             //等待回應5秒 //怪怪的  Server端下中斷點會直接跳異常,但應該還沒逾時,也沒取消
-            //if (!taskResponse.Wait(5000))
-            //{
-            //    throw new TimeoutException("等候Response逾時");
-            //}
-            Thread.Sleep(5000);
+            if (!taskResponse.Wait(5000))
+            {
+                throw new TimeoutException("等候Response逾時");
+            }
+            //Thread.Sleep(5000);
             //取得結果
             response = GetResult(taskResponse);
             if (response == null)
@@ -147,11 +147,11 @@ namespace WebClient_Lib
             //Post出要求
             Task<HttpResponseMessage> taskResponse = this._client.PostAsync(uri, httpContent);
             //等待回應5秒後丟異常 //怪怪的  Server端下中斷點會直接跳異常,但應該還沒逾時,也沒取消
-            //if (!taskResponse.Wait(5000))
-            //{
-            //    throw new TimeoutException("等候Response逾時");
-            //}
-            Thread.Sleep(5000);
+            if (!taskResponse.Wait(5000))
+            {
+                throw new TimeoutException("等候Response逾時");
+            }
+            //Thread.Sleep(5000);
             response = GetResult(taskResponse);
             if (response == null)
             {
@@ -186,11 +186,11 @@ namespace WebClient_Lib
             //Post出要求
             Task<HttpResponseMessage> taskResponse = this._client.GetAsync(uri);
             //等待回應5秒後丟異常//怪怪的  Server端下中斷點會直接跳異常,但應該還沒逾時,也沒取消
-            //if (!taskResponse.Wait(5000))
-            //{
-            //    throw new TimeoutException("等候Response逾時");
-            //}
-            Thread.Sleep(5000);
+            if (!taskResponse.Wait(5000))
+            {
+                throw new TimeoutException("等候Response逾時");
+            }
+            //Thread.Sleep(5000);
             //取得結果
             response = this.GetResult(taskResponse);
             if (response == null)
