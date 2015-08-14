@@ -29,7 +29,8 @@ namespace WebClient_Lib
             string uid = BitConverter.ToString(inputData, 2, 7).Replace("-","");            //byte[2~8]
             string enc_RanB = BitConverter.ToString(inputData, 9, 16).Replace("-", "");       //byte[9~24]
             //=========================
-            string uri = @"http://10.27.88.164:1538/AuthHandler.ashx";
+            string uri = "http://10.27.88.164:1539/AutoloadHandler.ashx";
+                        //@"http://10.27.88.164:1538/AuthHandler.ashx";
             IHttpClient_Simple test = new HttpClient_Simple(3000, uri);
             string data = "32" + "00" + "04873ABA8D2C80" + "4EF61041ABE8B0EF8B32A627B19D83AA";
             

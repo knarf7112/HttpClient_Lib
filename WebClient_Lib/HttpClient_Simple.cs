@@ -16,7 +16,7 @@ namespace WebClient_Lib
     {
         private HttpClient _client;
         private Uri _uri;
-
+        private Stopwatch timer;//用來確定是否逾時
         #region Constructor
         /// <summary>
         /// 設定等待要求逾時(ms)和指定目的地的Uri字串
@@ -33,6 +33,7 @@ namespace WebClient_Lib
                 MaxResponseContentBufferSize = 64000000,//Response buffer 64MB
                 Timeout = TimeSpan.FromMilliseconds(milliseconds)//Gets or sets the number of milliseconds to wait before the request times out.
             };
+            this.timer = new Stopwatch();
         }
         #endregion
 
@@ -95,16 +96,29 @@ namespace WebClient_Lib
             string result = null;
             Encoding encoding = (encode == null) ? Encoding.ASCII : encode;
             Uri uri = (uriString == null) ? this._uri : new Uri(uriString, UriKind.Absolute);
-
+            Stopwatch timer = new Stopwatch();
             //資料寫入Http Body
             HttpContent httpContent = new StringContent(requestContent, encoding);
             //Post出要求
             Task<HttpResponseMessage> taskResponse = this._client.PostAsync(uri, httpContent);
+            //****************************************************************************************************
             //等待回應5秒 //怪怪的  Server端下中斷點會直接跳異常,但應該還沒逾時,也沒取消
-            if (!taskResponse.Wait(5000))
+            try
             {
-                throw new TimeoutException("等候Response逾時");
+                this.timer.Restart();
+                taskResponse.Wait();
             }
+            catch (AggregateException ex)
+            {
+                Debug.WriteLine("Waitting Response Error:" + ex.StackTrace);
+                return null;
+            }
+            finally
+            {
+                this.timer.Stop();
+                Debug.WriteLine("TimeSpend:" + ((decimal)this.timer.ElapsedTicks / Stopwatch.Frequency) + "s");
+            }
+            //****************************************************************************************************
             //Thread.Sleep(5000);
             //取得結果
             response = GetResult(taskResponse);
@@ -145,12 +159,25 @@ namespace WebClient_Lib
             //資料寫入Http Body
             HttpContent httpContent = new ByteArrayContent(requestContent);
             //Post出要求
+            //this._client.Timeout = new TimeSpan(0, 0, 60);
             Task<HttpResponseMessage> taskResponse = this._client.PostAsync(uri, httpContent);
-            //等待回應5秒後丟異常 //怪怪的  Server端下中斷點會直接跳異常,但應該還沒逾時,也沒取消
-            if (!taskResponse.Wait(5000))
+            //****************************************************************************************************
+            try
             {
-                throw new TimeoutException("等候Response逾時");
+                this.timer.Restart();
+                taskResponse.Wait();
             }
+            catch (AggregateException ex)
+            {
+                Debug.WriteLine("Waitting Response Error:" + ex.StackTrace);
+                return null;
+            }
+            finally
+            {
+                this.timer.Stop();
+                Debug.WriteLine("TimeSpend:" + ((decimal)this.timer.ElapsedTicks / Stopwatch.Frequency) + "s");
+            }
+            //****************************************************************************************************
             //Thread.Sleep(5000);
             response = GetResult(taskResponse);
             if (response == null)
