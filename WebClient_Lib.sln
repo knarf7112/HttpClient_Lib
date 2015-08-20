@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebClient_Lib_UnitTest", "W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpRequest_Test", "HttpRequest_Test\HttpRequest_Test.csproj", "{258D204A-E869-4638-8B54-F43B158AB509}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebHttpClient", "WebHttpClient\WebHttpClient.csproj", "{EBD8C262-2462-439A-9E9A-5A14ECFA6F76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{258D204A-E869-4638-8B54-F43B158AB509}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{258D204A-E869-4638-8B54-F43B158AB509}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{258D204A-E869-4638-8B54-F43B158AB509}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBD8C262-2462-439A-9E9A-5A14ECFA6F76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBD8C262-2462-439A-9E9A-5A14ECFA6F76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBD8C262-2462-439A-9E9A-5A14ECFA6F76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBD8C262-2462-439A-9E9A-5A14ECFA6F76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
