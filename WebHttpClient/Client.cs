@@ -34,30 +34,39 @@ namespace WebHttpClient
             int readByte = -1;
             #endregion
 
-            request = CreateWebRequest(uriString, timeOut, credential, proxyString);
-
-            SetReuqestData(request, method, sendData);
-
-            ReflectionAllPropertyValue(request);
             try
             {
+                // 1.create request and setting timeout, credential, proxy(if has)
+                request = CreateWebRequest(uriString, timeOut, credential, proxyString);
+                // 2.setting request method and send data(if has)
+                SetReuqestData(request, method, sendData);
+
+                // 3.等待並取得Server回應
                 response = request.GetResponse();
-                //ReflectionAllPropertyValue(request);
                 dataStream = response.GetResponseStream();
+
+                // 檢視Request和Response內的屬性數據
+                if (debugDisplay)
+                {
+                    ReflectionAllPropertyValue(request);
+                    ReflectionAllPropertyValue(response);
+                }
                 buffer = new Queue<byte>();
 
+                // 4.將Response的數據讀出並輸出
                 while ((readByte = dataStream.ReadByte()) > -1)
                 {
                     buffer.Enqueue((byte)readByte);
-                }
+                } 
                 result = buffer.ToArray();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Response讀取異常:" + ex.Message + "\n" + ex.StackTrace);
+                Debug.WriteLine("Response Error:" + ex.Message + "\n" + ex.StackTrace);
             }
             finally
             {
+                // 5.關閉Response連線
                 dataStream.Close();
                 response.Close();
             }
@@ -101,20 +110,21 @@ namespace WebHttpClient
         private static void SetReuqestData(WebRequest request,string method,byte[] sendData)
         {
             Stream dataStream = null;
-
+            //設定Method
             request.Method = method.ToUpper();
-
+            //設定content內容長度
             request.ContentLength = (sendData == null) ? 0 : sendData.Length;
-            
+            //設定Client端Agent
             ((HttpWebRequest)request).UserAgent = "4+ Client";
 
             
             switch (method.ToUpper())
             {
                 case "POST":
-                    request.ContentType = "application/x-www-form-urlencoded";
+                    request.ContentType = "application/x-www-form-urlencoded";//"POST" ContentType
                     try
                     {
+                        //Request資料寫入
                         dataStream = request.GetRequestStream();
                         dataStream.Write(sendData, 0, sendData.Length);
                     }

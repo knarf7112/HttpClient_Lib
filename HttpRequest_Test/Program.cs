@@ -15,8 +15,10 @@ namespace HttpRequest_Test
     {
         static void Main(string[] args)
         {
-            string uri = "http://10.27.88.164:1539/TxLogFileUpLoadHandler.ashx?%u6A94%u6848=%u6E2C%u8A66%u6A94.txt";
-            string postData = "this is test";
+            string uri = "http://10.27.88.164:1539/TxLogFileUpLoad?FileName=test_TxLog1.txt";
+                //"http://10.27.88.164:1539/TxLogFileUpLoadHandler.ashx?FileName=test_TxLog1.txt";
+            //"http://10.27.88.164:1539/TxLogFileUpLoadHandler.ashx?%u6A94%u6848=%u6E2C%u8A66%u6A94.txt";//%u6A94%u6848="檔案", %u6E2C%u8A66%u6A94="測試檔"
+            string postData = "this is test2";
             byte[] postDataBytes = Encoding.ASCII.GetBytes(postData);
             byte[] responseData = Client.GetResponse(uri, "Post", postDataBytes);
             string responseDataStr = Encoding.ASCII.GetString(responseData);
