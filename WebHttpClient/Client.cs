@@ -18,12 +18,13 @@ namespace WebHttpClient
         /// <param name="uriString">目的地Uri</param>
         /// <param name="method">Get/Post</param>
         /// <param name="sendData">null(Get)/bytes(Post)</param>
+        /// <param name="errorMsg">異常輸出(default:"")</param>
         /// <param name="debugDisplay"></param>
         /// <param name="credential">認證用(default:null)</param>
         /// <param name="timeOut">要求逾時</param>
         /// <param name="proxyString"></param>
         /// <returns>回應資料(Byte Array)</returns>
-        public static byte[] GetResponse(string uriString, string method,byte[] sendData,bool debugDisplay = false, ICredentials credential = null, int timeOut = 10000, string proxyString = null)
+        public static byte[] GetResponse(string uriString, string method,byte[] sendData,out string errorMsg,bool debugDisplay = false, ICredentials credential = null, int timeOut = 10000, string proxyString = null)
         {
             #region variable
             WebRequest request = null;
@@ -32,6 +33,7 @@ namespace WebHttpClient
             byte[] result = null;
             Queue<byte> buffer = null;
             int readByte = -1;
+            errorMsg = string.Empty;
             #endregion
 
             try
@@ -44,7 +46,7 @@ namespace WebHttpClient
                 // 3.等待並取得Server回應
                 response = request.GetResponse();
                 dataStream = response.GetResponseStream();
-
+                
                 // 檢視Request和Response內的屬性數據
                 if (debugDisplay)
                 {
@@ -62,7 +64,9 @@ namespace WebHttpClient
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Response Error:" + ex.Message + "\n" + ex.StackTrace);
+                Debug.WriteLine("Response Error:" + ex.Message + "\n " + ex.StackTrace);
+                //throw ex;
+                errorMsg = "Response Error:" + ex.Message + "\n " + ex.StackTrace;
             }
             finally
             {
@@ -131,6 +135,7 @@ namespace WebHttpClient
                     catch (Exception ex)
                     {
                         Debug.WriteLine("Request寫入異常:" + ex.Message + " \n" + ex.StackTrace);
+                        throw new Exception("Request寫入異常:" + ex.Message + " \n" + ex.StackTrace);
                     }
                     finally
                     {
