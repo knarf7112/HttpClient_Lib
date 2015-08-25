@@ -4,27 +4,30 @@ using System.Collections.Generic;
 using System.Net;
 using System.IO;
 using System.Diagnostics;
+using System.Collections.Specialized;
 
 namespace WebHttpClient
 {
     /// <summary>
-    /// 使用WebRequest
+    /// 使用WebRequest請求(.Net 4.0)
     /// </summary>
     public class Client
     {
+        #region Public Method
         /// <summary>
-        /// 設定Uri,與資料並送出Request後等待Response
+        /// 使用WebRequest發送請求並取得Response(有網站認證介面與Proxy的Uri設定)
         /// </summary>
-        /// <param name="uriString">目的地Uri</param>
+        /// <param name="uriString">目的地Uri字串</param>
         /// <param name="method">Get/Post</param>
         /// <param name="sendData">null(Get)/bytes(Post)</param>
         /// <param name="errorMsg">異常輸出(default:"")</param>
         /// <param name="debugDisplay"></param>
         /// <param name="credential">認證用(default:null)</param>
-        /// <param name="timeOut">要求逾時</param>
+        /// <param name="timeOut">請求的回應逾時(ms)</param>
         /// <param name="proxyString"></param>
-        /// <returns>回應資料(Byte Array)</returns>
-        public static byte[] GetResponse(string uriString, string method,byte[] sendData,out string errorMsg,bool debugDisplay = false, ICredentials credential = null, int timeOut = 10000, string proxyString = null)
+        /// <param name="requestHeaders">新增請求Header資料</param>
+        /// <returns>Response回應資料(Byte Array)</returns>
+        public static byte[] GetResponse(string uriString, string method, byte[] sendData, out string errorMsg, ICredentials credential, int timeOut = 10000, NameValueCollection requestHeaders = null, bool debugDisplay = false, string proxyString = null)
         {
             #region variable
             WebRequest request = null;
@@ -35,15 +38,23 @@ namespace WebHttpClient
             int readByte = -1;
             errorMsg = string.Empty;
             #endregion
-
+            
             try
             {
                 // 1.create request and setting timeout, credential, proxy(if has)
-                request = CreateWebRequest(uriString, timeOut, credential, proxyString);
-                // 2.setting request method and send data(if has)
-                SetReuqestData(request, method, sendData);
+                request = CreateWebRequest(uriString, timeOut);
+                // 2.set credential and proxy
+                SetCredentialAndProxy(request, credential, proxyString);
+                // 3.setting request method and send data(if has)
+                SetReuqestHeaders(request, method, requestHeaders);
 
-                // 3.等待並取得Server回應
+                // 4.Request data write to stream( if has data)
+                if (!WriteRequestData(request, sendData, out errorMsg))
+                {
+                    throw new Exception(errorMsg);
+                }
+                
+                // 5.等待並取得Server回應
                 response = request.GetResponse();
                 dataStream = response.GetResponseStream();
                 
@@ -55,7 +66,7 @@ namespace WebHttpClient
                 }
                 buffer = new Queue<byte>();
 
-                // 4.將Response的數據讀出並輸出
+                // 6.將Response的數據讀出並輸出
                 while ((readByte = dataStream.ReadByte()) > -1)
                 {
                     buffer.Enqueue((byte)readByte);
@@ -70,13 +81,85 @@ namespace WebHttpClient
             }
             finally
             {
-                // 5.關閉Response連線
+                // 6.關閉Response連線
                 dataStream.Close();
                 response.Close();
             }
             return result;
         }
 
+        /// <summary>
+        /// 使用WebRequest發送請求並取得Response
+        /// </summary>
+        /// <param name="uriString">目的地Uri字串</param>
+        /// <param name="method">GET/POST</param>
+        /// <param name="errorMsg">異常訊息(default:"")</param>
+        /// <param name="timeOut">請求的回應逾時(ms)</param>
+        /// <param name="requestHeaders">要新增的Request Header</param>
+        /// <param name="sendData">送出的請求參數數據</param>
+        /// <returns>response content data</returns>
+        public static byte[] GetResponse(string uriString, string method, out string errorMsg, int timeOut = 10000, NameValueCollection requestHeaders = null, params byte[] sendData)
+        {
+            #region variable
+            WebRequest request = null;
+            Stream dataStream = null;
+            WebResponse response = null;
+            byte[] result = null;
+            Queue<byte> buffer = null;
+            int readByte = -1;
+            errorMsg = string.Empty;
+            #endregion
+
+            
+            try
+            {
+                // 1.create request and setting timeout, credential, proxy(if has)
+                request = CreateWebRequest(uriString, timeOut);
+                // 2.setting request method and send data(if has)
+                SetReuqestHeaders(request, method, requestHeaders);
+                
+                // 3.Request data write to stream( if has data)
+                if (!WriteRequestData(request, sendData, out errorMsg))
+                {
+                    throw new Exception(errorMsg);
+                }
+
+                // 4.等待並取得Server回應
+                response = request.GetResponse();
+                dataStream = response.GetResponseStream();
+
+                // 檢視Request和Response內的屬性數據
+                //if (debugDisplay)
+                //{
+                //    ReflectionAllPropertyValue(request);
+                //    ReflectionAllPropertyValue(response);
+                //}
+                buffer = new Queue<byte>();
+
+                // 5.將Response的數據讀出並輸出
+                while ((readByte = dataStream.ReadByte()) > -1)
+                {
+                    buffer.Enqueue((byte)readByte);
+                }
+                result = buffer.ToArray();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Response Error:" + ex.Message + "\n " + ex.StackTrace);
+                //throw ex;
+                errorMsg = "Response Error:" + ex.Message + "\n " + ex.StackTrace;
+            }
+            finally
+            {
+                // 6.關閉Response連線
+                dataStream.Close();
+                response.Close();
+            }
+            return result;
+        }
+        #endregion
+
+        #region Private Method
         /// <summary>
         /// Create WebRequest by UriString and set timeout(ms), credential, proxy
         /// </summary>
@@ -85,7 +168,7 @@ namespace WebHttpClient
         /// <param name="credential">Web認證(如果有)</param>
         /// <param name="proxyString">代理(如果有)</param>
         /// <returns>WebRequest Object</returns>
-        private static WebRequest CreateWebRequest(string uriString, int timeOut, ICredentials credential, string proxyString)
+        private static WebRequest CreateWebRequest(string uriString, int timeOut)
         {
             WebRequest request = null;
 
@@ -93,16 +176,23 @@ namespace WebHttpClient
             request = WebRequest.Create(uriString);
             //time out setting
             request.Timeout = timeOut;
+
+            return request;
+        }
+
+        /// <summary>
+        /// 設定認證與代理
+        /// </summary>
+        /// <param name="request">請求</param>
+        /// <param name="credential">認證介面</param>
+        /// <param name="proxyString">代理UriString</param>
+        private static void SetCredentialAndProxy(WebRequest request, ICredentials credential, string proxyUriString)
+        {
             //認證用
             request.Credentials = credential;//new NetworkCredential("ID","Password","Domain Name") ;
 
             //proxy setting 
-            if (proxyString != null)
-            {
-                request.Proxy = new WebProxy(proxyString);
-            }
-
-            return request;
+            request.Proxy = new WebProxy(proxyUriString);
         }
 
         /// <summary>
@@ -111,42 +201,71 @@ namespace WebHttpClient
         /// <param name="request"></param>
         /// <param name="method"></param>
         /// <param name="sendData"></param>
-        private static void SetReuqestData(WebRequest request,string method,byte[] sendData)
+        private static void SetReuqestHeaders(WebRequest request, string method, NameValueCollection headers)
         {
             Stream dataStream = null;
+            string errMsg = string.Empty;
             //設定Method
             request.Method = method.ToUpper();
-            //設定content內容長度
-            request.ContentLength = (sendData == null) ? 0 : sendData.Length;
             //設定Client端Agent
             ((HttpWebRequest)request).UserAgent = "4+ Client";
-
-            
             switch (method.ToUpper())
             {
                 case "POST":
-                    request.ContentType = "application/x-www-form-urlencoded";//"POST" ContentType
-                    try
-                    {
-                        //Request資料寫入
-                        dataStream = request.GetRequestStream();
-                        dataStream.Write(sendData, 0, sendData.Length);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("Request寫入異常:" + ex.Message + " \n" + ex.StackTrace);
-                        throw new Exception("Request寫入異常:" + ex.Message + " \n" + ex.StackTrace);
-                    }
-                    finally
-                    {
-                        dataStream.Close();
-                    }
+                    request.ContentType = "application/x-www-form-urlencoded";
                     break;
                 case "GET":
-                    request.ContentType = "text/plain";
+                    request.ContentType = "text/html";
                     break;
                 default:
-                    throw new Exception("Method Invalid:" + method);
+                    request.ContentType = "text/plain";
+                    break;
+            }
+            //新增header參數
+            if (headers != null && headers.Count > 0)
+            {
+                request.Headers.Add(headers);
+            }
+        }
+
+        /// <summary>
+        /// Request data write to Stream
+        /// </summary>
+        /// <param name="request">請求</param>
+        /// <param name="requestData">請求的參數資料</param>
+        /// <param name="errMsg">異常訊息(default:"")</param>
+        /// <returns>請求寫入成功/失敗</returns>
+        private static bool WriteRequestData(WebRequest request,byte[] requestData,out string errMsg)
+        {
+            Stream dataStream = null;
+            errMsg = ""; 
+            try
+            {
+                if (requestData != null && requestData.Length > 0)
+                {
+                    dataStream = request.GetRequestStream();
+                    dataStream.Write(requestData, 0, requestData.Length);
+                    request.ContentLength = requestData.Length;
+                }
+                else
+                {
+                    request.ContentLength = 0;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Request Write Error: {0} \n{1}", ex.Message, ex.StackTrace);
+                errMsg = String.Format("Request Write Error: {0} \n{1}", ex.Message, ex.StackTrace);
+                request.ContentLength = 0;
+                return false;
+            }
+            finally
+            {
+                if (dataStream != null)
+                {
+                    dataStream.Close();
+                }
             }
         }
 
@@ -185,5 +304,6 @@ namespace WebHttpClient
                 System.Diagnostics.Debug.WriteLine("Reflection Error:" + ex.StackTrace);
             }
         }
+        #endregion
     }
 }
