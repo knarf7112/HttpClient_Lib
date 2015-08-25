@@ -152,8 +152,14 @@ namespace WebHttpClient
             finally
             {
                 // 6.關閉Response連線
-                dataStream.Close();
-                response.Close();
+                if (dataStream != null)
+                {
+                    dataStream.Close();
+                }
+                if (response != null)
+                {
+                    response.Close();
+                }
             }
             return result;
         }
@@ -204,11 +210,16 @@ namespace WebHttpClient
         private static void SetReuqestHeaders(WebRequest request, string method, NameValueCollection headers)
         {
             Stream dataStream = null;
-            string errMsg = string.Empty;
+            HttpWebRequest httpWebRequest = httpWebRequest = ((HttpWebRequest)request);
+            //default setting
             //設定Method
-            request.Method = method.ToUpper();
+            httpWebRequest.Method = method.ToUpper();
             //設定Client端Agent
-            ((HttpWebRequest)request).UserAgent = "4+ Client";
+            httpWebRequest.UserAgent = "4+ Client";
+            //完成後關閉連線
+            httpWebRequest.KeepAlive = false;
+            //httpWebRequest.Connection = "Close";
+
             switch (method.ToUpper())
             {
                 case "POST":
@@ -221,10 +232,71 @@ namespace WebHttpClient
                     request.ContentType = "text/plain";
                     break;
             }
-            //新增header參數
+            //新增的header參數
             if (headers != null && headers.Count > 0)
             {
-                request.Headers.Add(headers);
+                //request.Headers.Add(headers);//輸入Content-Type時不給這樣增加  機車ㄟ
+                //原因如下:
+                //ref1:http://blog.useasp.net/archive/2013/09/03/the-methods-to-dispose-http-header-cannot-add-to-webrequest-headers.aspx
+                //ref2:https://msdn.microsoft.com/zh-cn/library/system.net.httpwebrequest.headers(v=vs.110).aspx
+                foreach (string headerName in headers.Keys)
+                {
+                    switch (headerName.ToUpper())
+                    {
+                        case "ACCEPT":
+                            httpWebRequest.Accept = headers[headerName];
+                            break;
+                        case "CONNECTION":
+                            if (headers[headerName] != "Keep-alive")
+                            {
+                                httpWebRequest.KeepAlive = false;
+                                //httpWebRequest.Connection = headers[headerName];
+                            }
+                            else
+                            {
+                                httpWebRequest.KeepAlive = true;
+                                //httpWebRequest.Connection = headers[headerName];
+                            }
+                            break;
+                        case "CONTENT-LENGTH":
+                            httpWebRequest.ContentLength = Convert.ToInt64(headers[headerName]);
+                            break;
+                        case "CONTENT-TYPE":
+                            httpWebRequest.ContentType = headers[headerName];
+                            break;
+                        case "EXPECT":
+                            httpWebRequest.Expect = headers[headerName];
+                            break;
+                        case "DATE":
+                            httpWebRequest.Date = DateTime.Parse(headers[headerName]);
+                            break;
+                        case "HOST":
+                            httpWebRequest.Host = headers[headerName];
+                            break;
+                        case "IF-MODIFIED-SINCE":
+                            httpWebRequest.IfModifiedSince = DateTime.Parse(headers[headerName]);
+                            break;
+                        case "RANGE":
+                            //httpWebRequest.AddRange()
+                            //範圍不知道要怎加,先跳過
+                            break;
+                        case "REFERER":
+                            httpWebRequest.Referer = headers[headerName];
+                            break;
+                        case "TRANSFER-ENCODING":
+                            httpWebRequest.TransferEncoding = headers[headerName];
+                            break;
+                        case "USER-AGENT":
+                            httpWebRequest.UserAgent = headers[headerName];
+                            break;
+                        default:
+                            request.Headers.Add(headerName, headers[headerName]);
+                            break;
+
+                    }
+                    
+                }
+                
             }
         }
 
@@ -243,9 +315,10 @@ namespace WebHttpClient
             {
                 if (requestData != null && requestData.Length > 0)
                 {
+                    request.ContentLength = requestData.Length;
                     dataStream = request.GetRequestStream();
                     dataStream.Write(requestData, 0, requestData.Length);
-                    request.ContentLength = requestData.Length;
+                    
                 }
                 else
                 {
@@ -257,7 +330,7 @@ namespace WebHttpClient
             {
                 Debug.WriteLine("Request Write Error: {0} \n{1}", ex.Message, ex.StackTrace);
                 errMsg = String.Format("Request Write Error: {0} \n{1}", ex.Message, ex.StackTrace);
-                request.ContentLength = 0;
+                //request.ContentLength = 0;
                 return false;
             }
             finally
