@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpRequest_Test", "HttpReq
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebHttpClient", "WebHttpClient\WebHttpClient.csproj", "{EBD8C262-2462-439A-9E9A-5A14ECFA6F76}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client_Lib_NETv35", "Client_Lib_NETv35\Client_Lib_NETv35.csproj", "{990308F7-ABFD-4F06-9759-0B4A894747CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client_Lib_NETv35_UnitTest", "Client_Lib_NETv35_UnitTest\Client_Lib_NETv35_UnitTest.csproj", "{1904C3D0-D099-4C05-AFE2-C4C7F8162084}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{EBD8C262-2462-439A-9E9A-5A14ECFA6F76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBD8C262-2462-439A-9E9A-5A14ECFA6F76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBD8C262-2462-439A-9E9A-5A14ECFA6F76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{990308F7-ABFD-4F06-9759-0B4A894747CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{990308F7-ABFD-4F06-9759-0B4A894747CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{990308F7-ABFD-4F06-9759-0B4A894747CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{990308F7-ABFD-4F06-9759-0B4A894747CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1904C3D0-D099-4C05-AFE2-C4C7F8162084}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1904C3D0-D099-4C05-AFE2-C4C7F8162084}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1904C3D0-D099-4C05-AFE2-C4C7F8162084}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1904C3D0-D099-4C05-AFE2-C4C7F8162084}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

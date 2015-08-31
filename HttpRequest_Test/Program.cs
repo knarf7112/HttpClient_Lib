@@ -19,8 +19,9 @@ namespace HttpRequest_Test
                 //"http://10.27.88.164:1539/TxLogFileUpLoadHandler.ashx?FileName=test_TxLog1.txt";
             //"http://10.27.88.164:1539/TxLogFileUpLoadHandler.ashx?%u6A94%u6848=%u6E2C%u8A66%u6A94.txt";//%u6A94%u6848="檔案", %u6E2C%u8A66%u6A94="測試檔"
             string postData = "this is test2";
+            string errMsg = "";
             byte[] postDataBytes = Encoding.ASCII.GetBytes(postData);
-            byte[] responseData = Client.GetResponse(uri, "Post", postDataBytes);
+            byte[] responseData = Client.GetResponse(uri, "Post", out errMsg, 10000, null, postDataBytes);
             string responseDataStr = Encoding.ASCII.GetString(responseData);
             Console.WriteLine("回應:" + responseDataStr);
             Console.ReadKey();
