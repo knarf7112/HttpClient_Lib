@@ -16,7 +16,48 @@ namespace WebClient_Lib
 {
     class Program
     {
-        static void Main()
+        static void Main(string[] args)
+        {
+            string url = @"http://10.27.68.155/BU_LOL_RS/api/load";
+
+            HttpClient client = new HttpClient();
+            string data = "{\"COM_TYPE\":\"0331\",\"ICC_NO\":\"7311140024007006\",\"LOAD_AMT\":200,\"LOAD_RC\":null,\"LOAD_SN\":null,\"MERC_FLG\":\"SET\",\"POS_FLG\":\"01\",\"READER_ID\":\"8604241F6A9F2980    \",\"REG_ID\":\"01\",\"STORE_NO\":\"113584\"}";
+            string responseStr = string.Empty;
+            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+            HttpRequestMessage msg = new HttpRequestMessage(HttpMethod.Post, url);
+            msg.Content = new StringContent(data, Encoding.UTF8, "application/json");
+            /*
+            client.SendAsync(msg).ContinueWith(response => {
+                HttpResponseMessage response2 = response.Result as HttpResponseMessage;
+                Console.WriteLine("Response Headers: {0}", response.Result);
+                response2.Content.ReadAsByteArrayAsync().ContinueWith(dataBytes => {
+                    byte[] responseArr = dataBytes.Result as byte[];
+                    string responseStr = Encoding.UTF8.GetString(responseArr);
+                    Console.WriteLine("Response Content: \r\n{0}", responseStr);
+                });
+
+            });
+            */
+            client.SendAsync(msg).ContinueWith(responseTask =>
+            {
+                HttpResponseMessage response = responseTask.Result;
+                Console.WriteLine("Response Headers: {0}", response);
+                return response.Content.ReadAsByteArrayAsync().Result;
+            }).ContinueWith(dataTask =>
+            {
+                byte[] contentArr = dataTask.Result as byte[];
+                responseStr = Encoding.UTF8.GetString(contentArr);
+                Console.WriteLine("Response Content: \r\n{0}", responseStr);
+
+            }).Wait(1000);
+
+            var qq = responseStr;
+            Console.ReadKey();
+        }
+
+        #region Test3
+        static void Main6()
         {
 
             byte[] inputData = new byte[] { 0x20, 0x00,  //KeyNo(1 Byte) + KeyVer(1 Byte)
@@ -87,6 +128,7 @@ namespace WebClient_Lib
             Console.WriteLine("結果:" + result);
             
         }
+        #endregion
 
         #region Test 2
         /// <summary>

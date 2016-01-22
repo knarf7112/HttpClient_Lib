@@ -11,6 +11,7 @@ namespace WebClient_Lib
     /// </summary>
     public interface IHttpClient_Simple
     {
+        void SetHeaders(KeyValuePair<string,string> headers);
         /// <summary>
         /// 使用(Post)傳出Request資料(string),並非同步方式等候Response資料(string)
         /// 若沒輸入Uri,則使用Constructor輸入的Uri當預設參數

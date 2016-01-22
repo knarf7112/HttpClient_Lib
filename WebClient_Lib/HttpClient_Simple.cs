@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Diagnostics;
 using System.Threading;
 using System.IO;
+//
+using System.Collections.Generic;
 
 namespace WebClient_Lib
 {
@@ -15,6 +17,7 @@ namespace WebClient_Lib
     public class HttpClient_Simple : IHttpClient_Simple
     {
         private HttpClient _client;
+        private HttpRequestMessage requestMsg;
         private Uri _uri;
         private Stopwatch timer;//用來確定是否逾時
         #region Constructor
@@ -33,6 +36,7 @@ namespace WebClient_Lib
                 MaxResponseContentBufferSize = 64000000,//Response buffer 64MB
                 Timeout = TimeSpan.FromMilliseconds(milliseconds)//Gets or sets the number of milliseconds to wait before the request times out.
             };
+            
             this.timer = new Stopwatch();
         }
         #endregion
@@ -264,5 +268,10 @@ namespace WebClient_Lib
             return response;
         }
         #endregion
+
+        public void SetHeaders(KeyValuePair<string, string> headers)
+        {
+            this._client.DefaultRequestHeaders.Add("", "");
+        }
     }
 }
